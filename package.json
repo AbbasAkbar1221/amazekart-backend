@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "start": "node mainServer.js",
+    "dev":"node authServer.js"
+  },
   "dependencies": {
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
