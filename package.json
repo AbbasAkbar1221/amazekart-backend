@@ -1,7 +1,8 @@
 {
   "scripts": {
     "start": "node mainServer.js",
-    "dev":"node authServer.js"
+    "dev":"node authServer.js",
+    "build": "echo 'No build step required'"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
