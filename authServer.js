@@ -9,13 +9,13 @@ const app = express();
 
 app.use(express.json());
 app.options('*', cors());
-
-app.use(
-  cors({
-    origin: [process.env.ORIGIN],
-    credentials: true,
-  })
-);
+app.use(cors());
+// app.use(
+//   cors({
+//     origin: [process.env.ORIGIN],
+//     credentials: true,
+//   })
+// );
 
 const PORT_AUTH = process.env.PORT_AUTH;
 

@@ -11,12 +11,14 @@ const User = require("./models/user");
 app.use(express.json());
 app.options('*', cors());
 
-app.use(
-  cors({
-    origin: [process.env.ORIGIN],
-    credentials: true
-  })
-);
+app.use(cors());
+
+// app.use(
+//   cors({
+//     origin: [process.env.ORIGIN],
+//     credentials: true
+//   })
+// );
 
 const PORT = process.env.PORT;
 
