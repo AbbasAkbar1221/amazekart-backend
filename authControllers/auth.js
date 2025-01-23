@@ -7,7 +7,7 @@ const bcrypt = require("bcrypt");
 
 let refresh_tokens = new Set();
 
-async function registerUser (req, res){
+async function registerUser(req, res) {
   try {
     const { username, password, email } = req.body;
     const salt = await bcrypt.genSalt();
@@ -20,7 +20,7 @@ async function registerUser (req, res){
     await user.save();
     res.json({ message: "User created successfully" });
   } catch (error) {
-    res.status(500).json({ message:error.message});
+    res.status(500).json({ message: error.message });
   }
 }
 
@@ -42,46 +42,56 @@ async function generateAccessToken(req, res) {
           .status(403)
           .json({ message: "Forbidden", error: err.message });
       }
-      const token = generateToken({ user: token_data.userInfo });
+      const token = generateToken({ userInfo: token_data.userInfo });
       return res.json({ token });
     }
   );
 }
 
 async function loginUser(req, res) {
-    const { username, password } = req.body;
-    const user = await User.findOne({ username: username });
-    if (!user) {
-      return res.status(400).json({ message: "Incorrect username" });
+  const { username, password } = req.body;
+  const user = await User.findOne({ username: username });
+  if (!user) {
+    return res.status(400).json({ message: "Incorrect username" });
+  }
+  try {
+    const isMatched = await bcrypt.compare(password, user.password);
+    if (!isMatched) {
+      return res.status(400).json({ message: "Incorrect password" });
     }
-    try {
-      const isMatched = await bcrypt.compare(password, user.password);
-      if (!isMatched) {
-        return res.status(400).json({ message: "Incorrect password" });
-      }
-    } catch (error) {
-      return res.status(500).json({ message: error.message });
-    }
-  
-    const userInfo = { username: user.username };
-    const token_data = { userInfo };
-  
-    const token = generateToken(token_data);
-  
-    const refresh_token = jwt.sign(token_data, process.env.REFRESH_TOKEN_SECRET);
-    refresh_tokens.add(refresh_token);
-  
-    return res.json({ token, refresh_token });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
   }
 
-  function generateToken(data) {
-    return jwt.sign(data, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: "2h",
-    });
-  }
+  const userInfo = { username: user.username };
+  const token_data = { userInfo };
 
-  module.exports = {
-    registerUser,
-    generateAccessToken,
-    loginUser,
+  const token = generateToken(token_data);
+
+  const refresh_token = jwt.sign(token_data, process.env.REFRESH_TOKEN_SECRET);
+  refresh_tokens.add(refresh_token);
+
+  return res.json({ token, refresh_token });
+}
+
+function generateToken(data) {
+  return jwt.sign(data, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: "10s",
+  });
+}
+
+async function logoutUser(req, res) {
+  const refreshToken = req.body.token;
+  if (!refresh_tokens.has(refreshToken)) {
+    res.status(200).json({ message: "No op" });
   }
+  refresh_tokens.delete(refreshToken);
+  res.status(204).json({ message: "Logged out" });
+}
+
+module.exports = {
+  registerUser,
+  generateAccessToken,
+  loginUser,
+  logoutUser
+};
